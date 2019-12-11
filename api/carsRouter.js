@@ -22,7 +22,21 @@ router.get("/", (req, res) => {
 });
 
 router.get("/:id", (req, res) => {
+    const { id } = req.params
     
+    db("cars")
+    .where({ id })
+    .first()
+    .then(car => {
+        res
+        .status(200)
+        .json(car)
+    })
+    .catch(error => {
+        res
+        .status(500)
+        .json({ message: "Failed to retrieve car with specified ID.", error })
+    })
 });
 
 router.post("/", (req, res) => {
@@ -48,36 +62,52 @@ router.post("/", (req, res) => {
 })
 
 router.put("/:id", (req, res) => {
+    const changes = req.body
+    const { id } = req.params
 
+    db("cars")
+    .where({ id })
+    .update(changes)
+    .then(count => {
+        if (count > 0){
+            res
+            .status(200)
+            .json({ message: `${count} record(s) updated`})
+        } else {
+            res
+            .status(404)
+            .json({ message: "Car with specified ID not found."})
+        }
+    })
+    .catch(error => {
+        res
+        .status(500)
+        .json({ message: "Error updating the car information.", error})
+    })
 })
 
 router.delete("/:id", (req, res) => {
+    const { id } = req.params
 
+    db("cars")
+    .where({ id })
+    .del()
+    .then(count => {
+        if (count > 0){
+            res
+            .status(200)
+            .json({ message: `${count} record(s) removed`})
+        } else {
+            res
+            .status(404)
+            .json({ message: "Car with specified ID not found."})
+        }
+    })
+    .catch(error => {
+        res
+        .status(500)
+        .json({ message: "Error removing the car.", error})
+    })
 })
 
 module.exports = router;
-
-//middleware
-
-// function validateID(req, res, next){
-//     const id = req.params.id
-
-//     db("cars")
-//         .select("*")
-//         .where({ id })
-//         .first()
-//         .then(car => {
-//             if (car){
-//                 next()
-//             } else {
-//                 res
-//                 .status(400)
-//                 .json({ message: "Invalid Car ID"})
-//             }
-//         })
-//         .catch(error => {    
-//             res
-//             .status(500)
-//             .json({ errorMessage: "Server error validating Car ID" });
-//         })
-// }
